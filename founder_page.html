@@ -27,7 +27,7 @@
         .toast-icon { font-size: 1.5rem; animation: iconBounce 0.5s ease infinite alternate; }
         @keyframes iconBounce { from { transform: scale(1); } to { transform: scale(1.2); } }
         
-        /* --- UI COMPONENTS --- */
+
         .home-trigger { position: fixed; top: 20px; right: 20px; z-index: 2000; cursor: pointer; opacity: 0.5; transition: 0.3s; color: #fff; font-size: 1.5rem; }
         .home-trigger:hover { opacity: 1; transform: scale(1.1); color: #3498db; }
         .admin-trigger { position: fixed; bottom: 30px; left: 20px; z-index: 2000; cursor: pointer; opacity: 0.1; transition: 0.5s; color: #fff; font-size: 1.5rem; }
@@ -259,7 +259,7 @@
             const u = document.getElementById('loginUser').value;
             const p = document.getElementById('loginPass').value;
             
-            if (u === "Admin" && p === "GODMYHXNDWTF") { 
+            if (u === "Admin" && p === "kuay588subudtood") { 
                 localStorage.setItem("adminMode", "true"); 
                 location.reload(); 
             } else { 
@@ -273,7 +273,7 @@
             document.getElementById('adminStatusBadge').style.display = 'flex'; 
         }
 
-        // --- SNOW EFFECT ---
+
         function createSnow() { const snow = document.createElement('div'); snow.innerHTML = '❄'; snow.className = 'snow'; snow.style.left = Math.random() * window.innerWidth + 'px'; snow.style.fontSize = Math.random() * 10 + 10 + 'px'; document.body.appendChild(snow); const anim = snow.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(105vh)', opacity: 0 }], { duration: 5000 + Math.random() * 3000 }); anim.onfinish = () => snow.remove(); }
         setInterval(createSnow, 400);
     </script>
