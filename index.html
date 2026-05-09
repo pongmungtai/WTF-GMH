@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WINTERFELL GODMYHXND</title>
     <meta name="referrer" content="no-referrer">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        
         * { 
             box-sizing: border-box; 
             -webkit-user-select: none;
@@ -132,16 +137,18 @@
     <div id="successOverlay" onclick="location.reload()">
         <div class="check-container"><i class="fas fa-check"></i></div>
     </div>
+    
     <div id="logoutModal">
         <div class="custom-modal">
             <h3>LOGOUT SESSION?</h3>
             <p>ออกจากโหมดแก้ไขใช่หรือไม่?</p>
             <div class="modal-btns">
-                <button class="m-btn btn-logout" onclick="localStorage.removeItem('adminMode'); location.reload();">LOGOUT</button>
+                <button class="m-btn btn-logout" onclick="firebaseLogout()">LOGOUT</button>
                 <button class="m-btn btn-cancel" onclick="document.getElementById('logoutModal').style.display='none'">CANCEL</button>
             </div>
         </div>
     </div>
+
     <div id="adminStatusBadge" onclick="document.getElementById('logoutModal').style.display='flex'">
         <i class="fas fa-user-shield"></i> EDITING MODE
     </div>
@@ -149,9 +156,9 @@
     <div id="loginPanel">
         <div class="login-box">
             <h3>ADMIN ACCESS</h3>
-            <input type="text" id="adminUser" placeholder="Username" autocomplete="off">
+            <input type="text" id="adminEmail" placeholder="Admin Email" autocomplete="off">
             <input type="password" id="adminPass" placeholder="Password">
-            <button class="login-btn" onclick="checkLogin()">LOGIN</button>
+            <button class="login-btn" id="loginBtn" onclick="checkLogin()">LOGIN</button>
             <div class="cancel-text" onclick="toggleLogin(false)">Cancel</div>
         </div>
     </div>
@@ -201,41 +208,73 @@
 
     <script>
         
+        const firebaseConfig = {
+            apiKey: "AIzaSyATUu8N24VHWxj67sbyw6pBttGmyut2rY0",
+            authDomain: "winterfell-database.firebaseapp.com",
+            databaseURL: "https://winterfell-database-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "winterfell-database",
+            storageBucket: "winterfell-database.firebasestorage.app",
+            messagingSenderId: "779335224278",
+            appId: "1:779335224278:web:55a5faf89f4284fffe7277",
+            measurementId: "G-4N379CJMVY"
+        };
+        
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        
+        async function checkLogin() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+            const btn = document.getElementById('loginBtn');
+
+            if(!email || !pass) return alert("กรุณากรอกข้อมูลให้ครบ");
+
+            btn.innerText = "VERIFYING...";
+            btn.disabled = true;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                document.getElementById('loginPanel').style.display = 'none';
+                document.getElementById('successOverlay').style.display = 'flex';
+            } catch (error) {
+                alert("Login Failed: " + error.message);
+                btn.innerText = "LOGIN";
+                btn.disabled = false;
+            }
+        }
+
+        
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById("adminStatusBadge").style.display = "flex";
+                document.getElementById("loginTrigger").style.display = "none";
+            } else {
+                document.getElementById("adminStatusBadge").style.display = "none";
+                document.getElementById("loginTrigger").style.display = "block";
+            }
+        });
+
+        function firebaseLogout() {
+            auth.signOut().then(() => location.reload());
+        }
+
+        function toggleLogin(show) {
+            document.getElementById('loginPanel').style.display = show ? 'flex' : 'none';
+            if(show) document.getElementById('adminEmail').focus();
+        }
+
+        function secureNav(token) { try { window.location.href = atob(token); } catch(e) {} }
+
+        
         document.addEventListener('keydown', function(e) {
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C"))) {
                 e.preventDefault();
             }
         });
 
-        function toggleLogin(show) {
-            const panel = document.getElementById('loginPanel');
-            panel.style.display = show ? 'flex' : 'none';
-            if(show) document.getElementById('adminUser').focus();
-        }
-
         
-        function checkLogin() {
-            const user = document.getElementById('adminUser').value.trim();
-            const pass = document.getElementById('adminPass').value.trim();
-            
-            
-            if (user === "Admin" && pass === "kuay588subudtood") {
-                localStorage.setItem("adminMode", "true");
-                document.getElementById('loginPanel').style.display = 'none';
-                document.getElementById('successOverlay').style.display = 'flex';
-            } else {
-                alert("Username หรือ Password ไม่ถูกต้อง!");
-                document.getElementById('adminPass').value = "";
-            }
-        }
-
-        if (localStorage.getItem("adminMode") === "true") {
-            document.getElementById("adminStatusBadge").style.display = "flex";
-            document.getElementById("loginTrigger").style.display = "none";
-        }
-
-        function secureNav(token) { try { window.location.href = atob(token); } catch(e) {} }
-
         function createSnow() {
             const snowflake = document.createElement('div');
             snowflake.innerHTML = '❄';
