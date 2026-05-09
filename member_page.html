@@ -8,6 +8,7 @@
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <style>
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
@@ -105,7 +106,7 @@
     <div id="memberGrid" class="grid-container"></div>
     <div id="pagination" class="pagination"></div>
 
-    <div id="loginModal" class="modal"><div class="modal-content"><h3>ADMIN ACCESS</h3><input type="text" id="loginUser" placeholder="Username" autocomplete="off"><input type="password" id="loginPass" placeholder="Password" autocomplete="new-password"><button class="action-btn" onclick="checkAuth()">Login</button></div></div>
+    <div id="loginModal" class="modal"><div class="modal-content"><h3>ADMIN ACCESS</h3><input type="text" id="loginEmail" placeholder="Admin Email" autocomplete="off"><input type="password" id="loginPass" placeholder="Password" autocomplete="new-password"><button class="action-btn" id="loginBtn" onclick="checkAuth()">Login</button></div></div>
     <div id="logoutModal" class="modal"><div class="modal-content"><h3>LOGOUT?</h3><button class="action-btn" style="background:#ff4444; color:#fff;" onclick="logout()">LOGOUT</button><button class="action-btn" onclick="closeModal('logoutModal')">CANCEL</button></div></div>
     <div id="deleteModal" class="modal"><div class="modal-content"><h3>CONFIRM DELETE?</h3><p id="deleteMemberName"></p><input type="hidden" id="deleteTargetId"><button class="action-btn" style="background:#ff4444; color:#fff;" onclick="confirmDelete()">DELETE</button><button class="action-btn" onclick="closeModal('deleteModal')">CANCEL</button></div></div>
     <div id="memberModal" class="modal"><div class="modal-content"><h3 id="modalTitle">MEMBER INFO</h3><input type="hidden" id="mId"><input type="text" id="mName" placeholder="ชื่อ Member" autocomplete="off"><input type="text" id="mFB" placeholder="ลิงก์ Facebook" autocomplete="off"><input type="text" id="mImg" placeholder="ลิงก์รูปภาพ (URL)" autocomplete="off"><button class="action-btn" id="saveBtn" style="background:#2ecc71; color:#fff;" onclick="saveMember()">Save</button><button class="action-btn" onclick="closeModal('memberModal')">Cancel</button></div></div>
@@ -113,7 +114,7 @@
     <script>
         window.onload = function() {
             document.getElementById('searchBar').value = "";
-            document.getElementById('loginUser').value = "";
+            document.getElementById('loginEmail').value = "";
             document.getElementById('loginPass').value = "";
         };
 
@@ -141,10 +142,26 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const auth = firebase.auth(); 
 
-        let members = [], isAdmin = localStorage.getItem("adminMode") === "true";
+        let members = [], isAdmin = false; 
         const cardsPerPage = 12;
         let currentPage = 1;
+
+        
+        auth.onAuthStateChanged(user => {
+            isAdmin = !!user;
+            if (isAdmin) {
+                document.getElementById('addBtn').style.display = 'flex';
+                document.getElementById('loginToggleBtn').style.display = 'none';
+                document.getElementById('adminStatusBadge').style.display = 'flex';
+            } else {
+                document.getElementById('addBtn').style.display = 'none';
+                document.getElementById('loginToggleBtn').style.display = 'block';
+                document.getElementById('adminStatusBadge').style.display = 'none';
+            }
+            render();
+        });
 
         db.ref('winterfell_member_db').on('value', (snap) => {
             const data = snap.val();
@@ -235,23 +252,38 @@
         function openAddModal() { document.getElementById('modalTitle').innerText = "ADD MEMBER"; document.getElementById('mId').value = ""; document.getElementById('memberModal').style.display = 'flex'; }
         function openEditModal(id) { const m = members.find(x => x.id === id); document.getElementById('mId').value = m.id; document.getElementById('mName').value = m.name; document.getElementById('mFB').value = m.fb; document.getElementById('mImg').value = m.img; document.getElementById('memberModal').style.display = 'flex'; }
         function openDeleteModal(id, name) { document.getElementById('deleteTargetId').value = id; document.getElementById('deleteMemberName').innerText = name; document.getElementById('deleteModal').style.display = 'flex'; }
-        function logout() { localStorage.removeItem("adminMode"); location.reload(); }
-
         
-        function checkAuth() { 
-            const u = document.getElementById('loginUser').value.trim();
-            const p = document.getElementById('loginPass').value.trim();
-            
-            if (u === "Admin" && p === "kuay588subudtood") { 
-                localStorage.setItem("adminMode", "true"); 
+        
+        function logout() { 
+            auth.signOut().then(() => {
+                localStorage.removeItem("adminMode"); 
                 location.reload(); 
-            } else { 
-                alert("ข้อมูลไม่ถูกต้อง!"); 
-                document.getElementById('loginPass').value = "";
-            } 
+            });
         }
 
-        if (isAdmin) { document.getElementById('addBtn').style.display = 'flex'; document.getElementById('loginToggleBtn').style.display = 'none'; document.getElementById('adminStatusBadge').style.display = 'flex'; }
+        
+        async function checkAuth() { 
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            const btn = document.getElementById('loginBtn');
+
+            if(!email || !pass) return alert("กรุณากรอกข้อมูลให้ครบ");
+
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                localStorage.setItem("adminMode", "true"); 
+                closeModal('loginModal');
+            } catch (error) {
+                alert("Login Failed: ข้อมูลไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าถึง");
+                btn.innerText = "Login";
+                btn.disabled = false;
+                document.getElementById('loginPass').value = "";
+            }
+        }
+
         function createSnow() { const snow = document.createElement('div'); snow.innerHTML = '❄'; snow.className = 'snow'; snow.style.left = Math.random() * window.innerWidth + 'px'; snow.style.fontSize = Math.random() * 10 + 10 + 'px'; document.body.appendChild(snow); const anim = snow.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(105vh)', opacity: 0 }], { duration: 5000 + Math.random() * 3000 }); anim.onfinish = () => snow.remove(); }
         setInterval(createSnow, 400);
     </script>
