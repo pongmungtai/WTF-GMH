@@ -8,14 +8,13 @@
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <style>
-        
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
         body, html { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; overflow-x: hidden; }
         .snow { position: fixed; top: -10px; color: #fff; pointer-events: none; z-index: 5; }
 
-        
         .toast-notify {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
             padding: 15px 30px; border-radius: 50px; background: rgba(0,0,0,0.9);
@@ -27,7 +26,6 @@
         .toast-icon { font-size: 1.5rem; animation: iconBounce 0.5s ease infinite alternate; }
         @keyframes iconBounce { from { transform: scale(1); } to { transform: scale(1.2); } }
         
-
         .home-trigger { position: fixed; top: 20px; right: 20px; z-index: 2000; cursor: pointer; opacity: 0.5; transition: 0.3s; color: #fff; font-size: 1.5rem; }
         .home-trigger:hover { opacity: 1; transform: scale(1.1); color: #3498db; }
         .admin-trigger { position: fixed; bottom: 30px; left: 20px; z-index: 2000; cursor: pointer; opacity: 0.1; transition: 0.5s; color: #fff; font-size: 1.5rem; }
@@ -108,20 +106,18 @@
     <div id="memberGrid" class="grid-container"></div>
     <div id="pagination" class="pagination"></div>
 
-    <div id="loginModal" class="modal"><div class="modal-content"><h3>ADMIN ACCESS</h3><input type="text" id="loginUser" placeholder="Username" autocomplete="off"><input type="password" id="loginPass" placeholder="Password" autocomplete="new-password"><button class="action-btn" onclick="checkAuth()">Login</button></div></div>
+    <div id="loginModal" class="modal"><div class="modal-content"><h3>ADMIN ACCESS</h3><input type="text" id="loginEmail" placeholder="Admin Email" autocomplete="off"><input type="password" id="loginPass" placeholder="Password" autocomplete="new-password"><button class="action-btn" id="loginBtn" onclick="checkAuth()">Login</button></div></div>
     <div id="logoutModal" class="modal"><div class="modal-content"><h3>LOGOUT?</h3><button class="action-btn" style="background:#ff4444; color:#fff;" onclick="logout()">LOGOUT</button><button class="action-btn" onclick="closeModal('logoutModal')">CANCEL</button></div></div>
     <div id="deleteModal" class="modal"><div class="modal-content"><h3>CONFIRM DELETE?</h3><p id="deleteMemberName"></p><input type="hidden" id="deleteTargetId"><button class="action-btn" style="background:#ff4444; color:#fff;" onclick="confirmDelete()">DELETE</button><button class="action-btn" onclick="closeModal('deleteModal')">CANCEL</button></div></div>
     <div id="memberModal" class="modal"><div class="modal-content"><h3 id="modalTitle">FOUNDER INFO</h3><input type="hidden" id="mId"><input type="text" id="mName" placeholder="ชื่อ Founder" autocomplete="off"><input type="text" id="mFB" placeholder="ลิงก์ Facebook" autocomplete="off"><input type="text" id="mImg" placeholder="ลิงก์รูปภาพ (URL)" autocomplete="off"><button class="action-btn" id="saveBtn" style="background:#2ecc71; color:#fff;" onclick="saveMember()">Save</button><button class="action-btn" onclick="closeModal('memberModal')">Cancel</button></div></div>
 
     <script>
-        
         window.onload = function() {
             document.getElementById('searchBar').value = "";
-            document.getElementById('loginUser').value = "";
+            document.getElementById('loginEmail').value = "";
             document.getElementById('loginPass').value = "";
         };
 
-       
         function showToast(type) {
             const toast = document.getElementById('toastNotify');
             const icon = document.getElementById('toastIcon');
@@ -132,10 +128,8 @@
             toast.classList.add('active'); setTimeout(() => { toast.classList.remove('active'); }, 3000);
         }
 
-        
         document.addEventListener('keydown', function(e) { if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || (e.ctrlKey && e.keyCode === 85)) { e.preventDefault(); return false; } });
 
-       
         const firebaseConfig = {
             apiKey: "AIzaSyATUu8N24VHWxj67sbyw6pBttGmyut2rY0",
             authDomain: "winterfell-database.firebaseapp.com",
@@ -148,19 +142,33 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const auth = firebase.auth(); 
 
-        let members = [], isAdmin = localStorage.getItem("adminMode") === "true";
+        let members = [], isAdmin = false; 
         const cardsPerPage = 12;
         let currentPage = 1;
 
         
+        auth.onAuthStateChanged(user => {
+            isAdmin = !!user;
+            if (isAdmin) {
+                document.getElementById('addBtn').style.display = 'flex';
+                document.getElementById('loginToggleBtn').style.display = 'none';
+                document.getElementById('adminStatusBadge').style.display = 'flex';
+            } else {
+                document.getElementById('addBtn').style.display = 'none';
+                document.getElementById('loginToggleBtn').style.display = 'block';
+                document.getElementById('adminStatusBadge').style.display = 'none';
+            }
+            render();
+        });
+
         db.ref('winterfell_founder_db').on('value', (snap) => {
             const data = snap.val();
             members = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse() : [];
             render();
         });
 
-       
         function render() {
             const grid = document.getElementById('memberGrid');
             grid.innerHTML = "";
@@ -198,7 +206,6 @@
 
         function changePage(p) { if (p >= 1 && p <= Math.ceil(members.length / cardsPerPage)) { currentPage = p; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
 
-        
         function handleSearch() {
             let val = document.getElementById('searchBar').value.toLowerCase();
             const grid = document.getElementById('memberGrid');
@@ -222,14 +229,9 @@
             }
         }
 
-        
         function saveMember() {
             const id = document.getElementById('mId').value;
-            const data = { 
-                name: document.getElementById('mName').value, 
-                fb: document.getElementById('mFB').value, 
-                img: document.getElementById('mImg').value || "https://via.placeholder.com/120" 
-            };
+            const data = { name: document.getElementById('mName').value, fb: document.getElementById('mFB').value, img: document.getElementById('mImg').value || "https://via.placeholder.com/120" };
             if (!data.name || !data.fb) return alert("กรุณากรอกชื่อและลิงก์ Facebook");
             if (id) {
                 db.ref('winterfell_founder_db/' + id).set(data).then(() => { showToast('edit'); });
@@ -244,7 +246,6 @@
             closeModal('deleteModal');
         }
 
-       
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
         function openLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
@@ -252,27 +253,36 @@
         function openEditModal(id) { const m = members.find(x => x.id === id); document.getElementById('mId').value = m.id; document.getElementById('mName').value = m.name; document.getElementById('mFB').value = m.fb; document.getElementById('mImg').value = m.img; document.getElementById('memberModal').style.display = 'flex'; }
         function openDeleteModal(id, name) { document.getElementById('deleteTargetId').value = id; document.getElementById('deleteMemberName').innerText = name; document.getElementById('deleteModal').style.display = 'flex'; }
         
-       
-        function logout() { localStorage.removeItem("adminMode"); location.reload(); }
         
-        function checkAuth() { 
-            const u = document.getElementById('loginUser').value;
-            const p = document.getElementById('loginPass').value;
-            
-            if (u === "Admin" && p === "kuay588subudtood") { 
-                localStorage.setItem("adminMode", "true"); 
+        function logout() { 
+            auth.signOut().then(() => {
+                localStorage.removeItem("adminMode"); 
                 location.reload(); 
-            } else { 
-                alert("ACCESS DENIED"); 
-            } 
+            });
         }
 
-        if (isAdmin) { 
-            document.getElementById('addBtn').style.display = 'flex'; 
-            document.getElementById('loginToggleBtn').style.display = 'none'; 
-            document.getElementById('adminStatusBadge').style.display = 'flex'; 
-        }
+        
+        async function checkAuth() { 
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            const btn = document.getElementById('loginBtn');
 
+            if(!email || !pass) return alert("กรุณากรอกข้อมูลให้ครบ");
+
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                localStorage.setItem("adminMode", "true"); 
+                closeModal('loginModal');
+            } catch (error) {
+                alert("ACCESS DENIED: ข้อมูลไม่ถูกต้อง");
+                btn.innerText = "Login";
+                btn.disabled = false;
+                document.getElementById('loginPass').value = "";
+            }
+        }
 
         function createSnow() { const snow = document.createElement('div'); snow.innerHTML = '❄'; snow.className = 'snow'; snow.style.left = Math.random() * window.innerWidth + 'px'; snow.style.fontSize = Math.random() * 10 + 10 + 'px'; document.body.appendChild(snow); const anim = snow.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(105vh)', opacity: 0 }], { duration: 5000 + Math.random() * 3000 }); anim.onfinish = () => snow.remove(); }
         setInterval(createSnow, 400);
