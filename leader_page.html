@@ -163,6 +163,7 @@
             render(); 
         });
 
+        // ดึงข้อมูลแยกหมวดหมู่จาก winterfell_leader_db อย่างถูกต้อง
         db.ref('winterfell_leader_db').on('value', (snap) => {
             const data = snap.val();
             members = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse() : [];
@@ -233,6 +234,8 @@
             const id = document.getElementById('mId').value;
             const data = { name: document.getElementById('mName').value, fb: document.getElementById('mFB').value, img: document.getElementById('mImg').value || "https://via.placeholder.com/120" };
             if (!data.name || !data.fb) return alert("Please fill info");
+            
+            // จัดเก็บและแก้ไขข้อมูลในโฟลเดอร์ winterfell_leader_db ของตัวเอง
             if (id) {
                 db.ref('winterfell_leader_db/' + id).set(data).then(() => { showToast('edit'); });
             } else {
@@ -242,6 +245,7 @@
         }
 
         function confirmDelete() {
+            // สั่งลบข้อมูลออกจากโฟลเดอร์ winterfell_leader_db เท่านั้น
             db.ref('winterfell_leader_db/' + document.getElementById('deleteTargetId').value).remove().then(() => { showToast('delete'); });
             closeModal('deleteModal');
         }
