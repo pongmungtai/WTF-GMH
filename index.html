@@ -11,7 +11,6 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        
         * { 
             box-sizing: border-box; 
             -webkit-user-select: none;
@@ -207,7 +206,6 @@
     </footer>
 
     <script>
-        
         const firebaseConfig = {
             apiKey: "AIzaSyATUu8N24VHWxj67sbyw6pBttGmyut2rY0",
             authDomain: "winterfell-database.firebaseapp.com",
@@ -219,11 +217,9 @@
             measurementId: "G-4N379CJMVY"
         };
         
-        
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        
         async function checkLogin() {
             const email = document.getElementById('adminEmail').value.trim();
             const pass = document.getElementById('adminPass').value.trim();
@@ -245,7 +241,6 @@
             }
         }
 
-        
         auth.onAuthStateChanged(user => {
             if (user) {
                 document.getElementById("adminStatusBadge").style.display = "flex";
@@ -267,14 +262,12 @@
 
         function secureNav(token) { try { window.location.href = atob(token); } catch(e) {} }
 
-        
         document.addEventListener('keydown', function(e) {
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C"))) {
                 e.preventDefault();
             }
         });
 
-        
         function createSnow() {
             const snowflake = document.createElement('div');
             snowflake.innerHTML = '❄';
