@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WINTERFELL GODMYHXND - OFFICIAL  </title>
+    <title>WINTERFELL GODMYHXND - OFFICIAL</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -148,7 +148,6 @@
         const cardsPerPage = 12;
         let currentPage = 1;
 
-        
         auth.onAuthStateChanged(user => {
             isAdmin = !!user;
             if (isAdmin) {
@@ -253,7 +252,6 @@
         function openEditModal(id) { const m = members.find(x => x.id === id); document.getElementById('mId').value = m.id; document.getElementById('mName').value = m.name; document.getElementById('mFB').value = m.fb; document.getElementById('mImg').value = m.img; document.getElementById('memberModal').style.display = 'flex'; }
         function openDeleteModal(id, name) { document.getElementById('deleteTargetId').value = id; document.getElementById('deleteMemberName').innerText = name; document.getElementById('deleteModal').style.display = 'flex'; }
         
-        
         function logout() { 
             auth.signOut().then(() => {
                 localStorage.removeItem("adminMode"); 
@@ -261,7 +259,6 @@
             });
         }
 
-        
         async function checkAuth() { 
             const email = document.getElementById('loginEmail').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
