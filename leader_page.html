@@ -97,7 +97,7 @@
     <div class="member-title-section">
         <h2>Leader</h2> 
         <div class="search-container">
-            <input type="text" id="searchBar" placeholder="Search Member name..." onkeyup="handleSearch()" autocomplete="off">
+            <input type="text" id="searchBar" placeholder="Search Leader name..." onkeyup="handleSearch()" autocomplete="off">
         </div>
     </div>
 
@@ -109,7 +109,7 @@
     <div id="loginModal" class="modal"><div class="modal-content"><h3>ADMIN ACCESS</h3><input type="text" id="loginEmail" placeholder="Admin Email" autocomplete="off"><input type="password" id="loginPass" placeholder="Password" autocomplete="new-password"><button class="action-btn" id="loginBtn" onclick="checkAuth()">Login</button></div></div>
     <div id="logoutModal" class="modal"><div class="modal-content"><h3>LOGOUT?</h3><button class="action-btn" style="background:#ff4444; color:#fff;" onclick="logout()">LOGOUT</button><button class="action-btn" onclick="closeModal('logoutModal')">CANCEL</button></div></div>
     <div id="deleteModal" class="modal"><div class="modal-content"><h3>CONFIRM DELETE?</h3><p id="deleteMemberName"></p><input type="hidden" id="deleteTargetId"><button class="action-btn" style="background:#ff4444; color:#fff;" onclick="confirmDelete()">DELETE</button><button class="action-btn" onclick="closeModal('deleteModal')">CANCEL</button></div></div>
-    <div id="memberModal" class="modal"><div class="modal-content"><h3 id="modalTitle">MEMBER INFO</h3><input type="hidden" id="mId"><input type="text" id="mName" placeholder="ชื่อ Member" autocomplete="off"><input type="text" id="mFB" placeholder="ลิงก์ Facebook" autocomplete="off"><input type="text" id="mImg" placeholder="ลิงก์รูปภาพ (URL)" autocomplete="off"><button class="action-btn" id="saveBtn" style="background:#2ecc71; color:#fff;" onclick="saveMember()">Save</button><button class="action-btn" onclick="closeModal('memberModal')">Cancel</button></div></div>
+    <div id="memberModal" class="modal"><div class="modal-content"><h3 id="modalTitle">LEADER INFO</h3><input type="hidden" id="mId"><input type="text" id="mName" placeholder="ชื่อ Leader" autocomplete="off"><input type="text" id="mFB" placeholder="ลิงก์ Facebook" autocomplete="off"><input type="text" id="mImg" placeholder="ลิงก์รูปภาพ (URL)" autocomplete="off"><button class="action-btn" id="saveBtn" style="background:#2ecc71; color:#fff;" onclick="saveMember()">Save</button><button class="action-btn" onclick="closeModal('memberModal')">Cancel</button></div></div>
 
     <script>
         window.onload = function() {
@@ -162,7 +162,6 @@
             render();
         });
 
-        // เปลี่ยนตัวชี้ฐานข้อมูลให้อ่านจากโฟลเดอร์ leader ของตัวเอง
         db.ref('winterfell_leader_db').on('value', (snap) => {
             const data = snap.val();
             members = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse() : [];
@@ -179,11 +178,11 @@
                     <div class="member-card" style="animation-delay: ${i * 0.05}s">
                         ${isAdmin ? `<div class="admin-controls">
                             <button class="edit-btn" onclick="openEditModal('${m.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="del-btn" onclick="openDeleteModal('${m.id}', '${m.name}')"><i class="fas fa-trash"></i></button>
+                            <button class="del-btn" onclick="openDeleteModal('${m.id}', '${m.name || m.LeaderName}')"><i class="fas fa-trash"></i></button>
                         </div>` : ''}
-                        <div class="img-wrapper"><img src="${m.img}" onerror="this.src='https://via.placeholder.com/120'"></div>
-                        <div class="name-text"><span>${m.name}</span><span>${m.name}</span></div>
-                        <a href="${m.fb}" target="_blank" class="fb-btn"><i class="fab fa-facebook"></i> Facebook</a>
+                        <div class="img-wrapper"><img src="${m.img || m.LeaderImg || 'https://via.placeholder.com/120'}" onerror="this.src='https://via.placeholder.com/120'"></div>
+                        <div class="name-text"><span>${m.name || m.LeaderName}</span><span>${m.name || m.LeaderName}</span></div>
+                        <a href="${m.fb || m.LeaderFB}" target="_blank" class="fb-btn"><i class="fab fa-facebook"></i> Facebook</a>
                     </div>`;
             });
             updatePagination();
@@ -213,16 +212,19 @@
             if (val === "") { render(); pagin.style.display = 'flex'; } 
             else {
                 grid.innerHTML = "";
-                members.filter(m => m.name.toLowerCase().includes(val)).forEach((m) => {
+                members.filter(m => {
+                    const name = m.name || m.LeaderName || "";
+                    return name.toLowerCase().includes(val);
+                }).forEach((m) => {
                     grid.innerHTML += `
                     <div class="member-card">
                         ${isAdmin ? `<div class="admin-controls">
                             <button class="edit-btn" onclick="openEditModal('${m.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="del-btn" onclick="openDeleteModal('${m.id}', '${m.name}')"><i class="fas fa-trash"></i></button>
+                            <button class="del-btn" onclick="openDeleteModal('${m.id}', '${m.name || m.LeaderName}')"><i class="fas fa-trash"></i></button>
                         </div>` : ''}
-                        <div class="img-wrapper"><img src="${m.img}" onerror="this.src='https://via.placeholder.com/120'"></div>
-                        <div class="name-text"><span>${m.name}</span><span>${m.name}</span></div>
-                        <a href="${m.fb}" target="_blank" class="fb-btn"><i class="fab fa-facebook"></i> Facebook</a>
+                        <div class="img-wrapper"><img src="${m.img || m.LeaderImg || 'https://via.placeholder.com/120'}" onerror="this.src='https://via.placeholder.com/120'"></div>
+                        <div class="name-text"><span>${m.name || m.LeaderName}</span><span>${m.name || m.LeaderName}</span></div>
+                        <a href="${m.fb || m.LeaderFB}" target="_blank" class="fb-btn"><i class="fab fa-facebook"></i> Facebook</a>
                     </div>`;
                 });
                 pagin.style.display = 'none';
@@ -231,10 +233,13 @@
 
         function saveMember() {
             const id = document.getElementById('mId').value;
-            const data = { name: document.getElementById('mName').value, fb: document.getElementById('mFB').value, img: document.getElementById('mImg').value || "https://via.placeholder.com/120" };
+            const data = { 
+                name: document.getElementById('mName').value, 
+                fb: document.getElementById('mFB').value, 
+                img: document.getElementById('mImg').value || "https://via.placeholder.com/120" 
+            };
             if (!data.name || !data.fb) return alert("Please fill info");
             
-            // ปรับเส้นทางบันทึกและแก้ไขข้อมูลให้เข้าโฟลเดอร์ leader ของตัวเอง
             if (id) {
                 db.ref('winterfell_leader_db/' + id).set(data).then(() => { showToast('edit'); });
             } else {
@@ -244,7 +249,6 @@
         }
 
         function confirmDelete() {
-            // ปรับเส้นทางลบข้อมูลให้ลบออกจากโฟลเดอร์ leader ของตัวเอง
             db.ref('winterfell_leader_db/' + document.getElementById('deleteTargetId').value).remove().then(() => { showToast('delete'); });
             closeModal('deleteModal');
         }
@@ -252,8 +256,8 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
         function openLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
-        function openAddModal() { document.getElementById('modalTitle').innerText = "ADD LEADER"; document.getElementById('mId').value = ""; document.getElementById('memberModal').style.display = 'flex'; }
-        function openEditModal(id) { const m = members.find(x => x.id === id); document.getElementById('mId').value = m.id; document.getElementById('mName').value = m.name; document.getElementById('mFB').value = m.fb; document.getElementById('mImg').value = m.img; document.getElementById('memberModal').style.display = 'flex'; }
+        function openAddModal() { document.getElementById('modalTitle').innerText = "ADD LEADER"; document.getElementById('mId').value = ""; document.getElementById('mName').value = ""; document.getElementById('mFB').value = ""; document.getElementById('mImg').value = ""; document.getElementById('memberModal').style.display = 'flex'; }
+        function openEditModal(id) { const m = members.find(x => x.id === id); document.getElementById('mId').value = m.id; document.getElementById('mName').value = m.name || m.LeaderName || ""; document.getElementById('mFB').value = m.fb || m.LeaderFB || ""; document.getElementById('mImg').value = m.img || m.LeaderImg || ""; document.getElementById('memberModal').style.display = 'flex'; }
         function openDeleteModal(id, name) { document.getElementById('deleteTargetId').value = id; document.getElementById('deleteMemberName').innerText = name; document.getElementById('deleteModal').style.display = 'flex'; }
         
         function logout() { 
