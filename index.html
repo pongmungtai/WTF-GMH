@@ -129,6 +129,30 @@
         .snowflake { position: fixed; top: -10px; color: #fff; pointer-events: none; z-index: 50; }
         .footer-credit { width: 100%; padding: 15px; text-align: center; font-size: 0.65rem; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; margin-top: auto; z-index: 100; }
         .footer-credit a { color: #fff; text-decoration: none; font-weight: bold; }
+
+        .menu-divider {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .menu-divider::before,
+        .menu-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .menu-divider span {
+            padding: 0 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            font-weight: 700;
+        }
+
     </style>
 </head>
 <body oncontextmenu="return false;"> 
@@ -188,6 +212,15 @@
                     <div class="btn" onclick="secureNav('bWVtYmVyX3BhZ2UuaHRtbA==')">
                         <i class="fas fa-star"></i>
                         <span>MEMBER WINTERFELL GODMYHXND</span>
+                    </div>
+                </div>
+
+                <div class="menu-divider"><span>RP</span></div>
+
+                <div class="pyramid-row">
+                    <div class="btn" onclick="secureNav('cnAuaHRtbA==')">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>RP CHECK</span>
                     </div>
                 </div>
             </div>
