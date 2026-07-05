@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WINTERFELL GODMYHXND - OFFICIAL</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <style>
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
+        body, html { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; overflow-x: hidden; }
+        .snow { position: fixed; top: -10px; color: #fff; pointer-events: none; z-index: 5; }
+
+        .toast-notify {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            padding: 15px 30px; border-radius: 50px; background: rgba(0,0,0,0.9);
+            border: 1px solid #222; display: flex; align-items: center; gap: 15px;
+            z-index: 9999; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+        }
+        .toast-notify.active { top: 30px; }
+        .toast-icon { font-size: 1.5rem; animation: iconBounce 0.5s ease infinite alternate; }
+        @keyframes iconBounce { from { transform: scale(1); } to { transform: scale(1.2); } }
+        
+        .home-trigger { position: fixed; top: 20px; right: 20px; z-index: 2000; cursor: pointer; opacity: 0.5; transition: 0.3s; color: #fff; font-size: 1.5rem; }
+        .home-trigger:hover { opacity: 1; transform: scale(1.1); color: #3498db; }
+        .admin-trigger { position: fixed; bottom: 30px; left: 20px; z-index: 2000; cursor: pointer; opacity: 0.1; transition: 0.5s; color: #fff; font-size: 1.5rem; }
+        .admin-trigger:hover { opacity: 1; transform: rotate(90deg); }
+
+        #addBtn { position: fixed; bottom: 30px; left: 20px; width: 65px; height: 65px; background: #2ecc71; color: white; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; display: none; z-index: 1000; box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4); transition: 0.3s; align-items: center; justify-content: center; }
+        #addBtn:hover { transform: scale(1.1) rotate(90deg); background: #27ae60; }
+
+        #adminStatusBadge { position: fixed; top: 20px; left: 20px; z-index: 2001; background: rgba(46, 204, 113, 0.15); color: #2ecc71; padding: 10px 18px; border-radius: 12px; border: 1px solid rgba(46, 204, 113, 0.3); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: none; backdrop-filter: blur(10px); transition: 0.3s; align-items: center; gap: 8px; }
+
+        .header-nav { width: 100%; background-color: #0a0a0a; padding: 30px 0; border-bottom: 1px solid #1a1a1a; display: flex; flex-direction: column; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .brand { font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: #ffffff; }
+        .slogan { color: #555; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 5px; margin-top: 8px; }
+        
+        .member-title-section { text-align: center; padding: 60px 20px 0; }
+        .member-title-section h2 { font-size: 3.5rem; font-weight: 900; text-transform: uppercase; background: linear-gradient(to bottom, #ffffff 40%, #888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
+
+        .search-container { max-width: 500px; margin: 30px auto; padding: 0 20px; }
+        #searchBar { width: 100%; padding: 18px; background: #0d0d0d; border: 1px solid #222; border-radius: 12px; color: #fff; text-align: center; outline: none; transition: 0.3s; font-size: 1rem; }
+
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 20px 40px 50px; max-width: 1400px; margin: 0 auto; position: relative; z-index: 10; }
+        
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .member-card { position: relative; background: linear-gradient(145deg, #0f0f0f, #050505); border: 1px solid #1a1a1a; border-radius: 24px; padding: 45px 25px; text-align: center; transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; min-height: 440px; animation: fadeInUp 0.6s ease backwards; }
+        .member-card:hover { border-color: #444; transform: translateY(-12px) scale(1.02); }
+
+        .img-wrapper { width: 130px; height: 130px; margin: 0 auto 25px; border-radius: 50%; padding: 4px; background: linear-gradient(45deg, #333, #000); transition: 0.5s; }
+        .img-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #000; }
+
+        .name-text { font-size: 1.35rem; font-weight: 800; margin-bottom: 20px; width: 210px; overflow: hidden; white-space: nowrap; position: relative; display: flex; mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); }
+        .name-text span { display: inline-block; padding-right: 50px; flex-shrink: 0; background: linear-gradient(120deg, #ffffff 30%, #a5d6f7 45%, #ffffff 50%, #a5d6f7 55%, #ffffff 70%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        .member-card:hover .name-text span { animation: marquee 6s linear infinite; }
+
+        .card-buttons-group { display: flex; gap: 10px; width: 90%; margin-top: auto; }
+        .dc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #5865F2; color: white !important; text-decoration: none; padding: 12px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; transition: 0.3s; flex-grow: 1; }
+        .dc-btn:hover { background: #4752C4; transform: translateY(-2px); }
+        
+        .checklist-btn { display: inline-flex; align-items: center; justify-content: center; background: #222; border: 1px solid #333; color: #fff; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; transition: 0.3s; font-size: 1rem; }
+        .checklist-btn:hover { background: #fff; color: #000; border-color: #fff; transform: translateY(-2px); }
+
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; padding: 40px 0 80px; z-index: 100; position: relative; }
+        .page-btn { background: #0a0a0a; border: 1px solid #222; color: #777; padding: 10px 18px; border-radius: 10px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        .page-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        .modal-content { background: #0d0d0d; padding: 40px; border-radius: 30px; border: 1px solid #222; width: 90%; max-width: 450px; text-align: center; position: relative; }
+        .modal-content input, .modal-content select { width: 100%; padding: 15px; margin: 10px 0; background: #151515; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; font-size: 1rem; }
+        .action-btn { background: #fff; color: #000; border: none; padding: 15px; width: 100%; border-radius: 12px; cursor: pointer; font-weight: 800; margin-top: 15px; text-transform: uppercase; }
+
+        .admin-controls { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 20; }
+        .del-btn, .edit-btn { width: 35px; height: 35px; border-radius: 10px; cursor: pointer; transition: 0.2s; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; }
+        .del-btn { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
+        .edit-btn { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+
+        .checklist-info-container { text-align: left; margin: 20px 0; max-height: 280px; overflow-y: auto; padding-right: 5px; }
+        .checklist-info-container::-webkit-scrollbar { width: 6px; }
+        .checklist-info-container::-webkit-scrollbar-track { background: #0d0d0d; border-radius: 10px; }
+        .checklist-info-container::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; transition: 0.3s; }
+        .checklist-info-container::-webkit-scrollbar-thumb:hover { background: #555; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000000; }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        .checklist-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #141414; border-radius: 12px; margin-bottom: 8px; border: 1px solid #222; }
+        .checklist-name { font-weight: 600; color: #ddd; font-size: 0.95rem; display: flex; align-items: center; gap: 10px; }
+        .checklist-actions { display: flex; align-items: center; gap: 8px; }
+        .checklist-fb-link { background: #1877F2; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: 0.2s; font-size: 0.85rem; }
+        .checklist-fb-link:hover { transform: scale(1.1); background: #1565C0; }
+        .checklist-del-btn { background: rgba(255,68,68,0.2); color: #ff4444; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        .checklist-del-btn:hover { background: #ff4444; color: #fff; }
+
+        .admin-add-member-box { border-top: 1px solid #222; padding-top: 20px; margin-top: 15px; text-align: left; display: none; }
+        
+        #checklistDeleteModal { z-index: 5000; }
+    </style>
+</head>
+<body oncontextmenu="return false;"> 
+
+    <div id="toastNotify" class="toast-notify">
+        <i id="toastIcon" class="toast-icon"></i>
+        <span id="toastMsg" style="font-weight: 800; letter-spacing: 1px;"></span>
+    </div>
+
+    <div id="adminStatusBadge" onclick="openLogoutModal()"> <i class="fas fa-user-shield"></i> EDITING MODE </div>
+    <div class="home-trigger" onclick="window.location.href='index.html'"> <i class="fas fa-home"></i> </div>
+    <div class="admin-trigger" id="loginToggleBtn" onclick="openLoginModal()"> <i class="fas fa-cog"></i> </div>
+
+    <header class="header-nav">
+        <div class="brand">WINTERFELL GODMYHXND</div>
+        <div class="slogan">NEVERBROKE IN WINTERFELL</div>
+    </header>
+
+    <div class="member-title-section">
+        <h2>ROPLAY</h2> 
+        <div class="search-container">
+            <input type="text" id="searchBar" placeholder="SEARCH ROPLAY..." onkeyup="handleSearch()" autocomplete="off">
+        </div>
+    </div>
+
+    <button id="addBtn" onclick="openAddModal()">+</button>
+
+    <div id="memberGrid" class="grid-container"></div>
+    <div id="pagination" class="pagination"></div>
+
+    <div id="loginModal" class="modal"><div class="modal-content"><h3>ADMIN ACCESS</h3><input type="text" id="loginEmail" placeholder="Admin Email" autocomplete="off"><input type="password" id="loginPass" placeholder="Password" autocomplete="new-password"><button class="action-btn" id="loginBtn" onclick="checkAuth()">Login</button></div></div>
+    <div id="logoutModal" class="modal"><div class="modal-content"><h3>LOGOUT?</h3><button class="action-btn" style="background:#ff4444; color:#fff;" onclick="logout()">LOGOUT</button><button class="action-btn" onclick="closeModal('logoutModal')">CANCEL</button></div></div>
+    <div id="deleteModal" class="modal"><div class="modal-content"><h3>DELETE ROPLAY DATA?</h3><p id="deleteMemberName" style="color: #ff4444; font-weight: bold;"></p><input type="hidden" id="deleteTargetId"><button class="action-btn" style="background:#ff4444; color:#fff;" onclick="confirmDelete()">DELETE</button><button class="action-btn" onclick="closeModal('deleteModal')">CANCEL</button></div></div>
+    
+    <div id="checklistDeleteModal" class="modal">
+        <div class="modal-content">
+            <h3>REMOVE CHECKLIST MEMBER?</h3>
+            <p id="checklistDeleteMemberName" style="color: #ff4444; font-weight: bold;"></p>
+            <input type="hidden" id="checklistDeleteTargetId">
+            <button class="action-btn" style="background:#ff4444; color:#fff;" onclick="confirmChecklistDelete()">REMOVE</button>
+            <button class="action-btn" onclick="closeModal('checklistDeleteModal')">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">MEMBER INFO</h3>
+            <input type="hidden" id="mId">
+            <input type="text" id="mName" placeholder="NAME / CODE" autocomplete="off">
+            <input type="text" id="mDiscord" placeholder="DISCORD ID / LINK" autocomplete="off">
+            <input type="text" id="mImg" placeholder="IMAGE LINK (URL)" autocomplete="off">
+            
+            <button class="action-btn" id="saveBtn" style="background:#2ecc71; color:#fff;" onclick="saveData()">Save</button>
+            <button class="action-btn" onclick="closeModal('memberModal')">Cancel</button>
+        </div>
+    </div>
+
+    <div id="checklistModal" class="modal">
+        <div class="modal-content">
+            <h3 id="checkListNameTitle" style="margin-bottom: 5px; text-transform: uppercase;">-</h3>
+            <p style="font-size: 0.85rem; color:#555; margin: 0 0 15px 0; letter-spacing: 1px;">CHECKLIST MEMBERS</p>
+            
+            <div class="checklist-info-container" id="checklistContainer"></div>
+            
+            <div class="admin-add-member-box" id="adminAddMemberBox">
+                <span style="font-size: 0.85rem; color: #2ecc71; font-weight: bold;"><i class="fas fa-plus"></i> ADD TO CHECKLIST</span>
+                <input type="text" id="newMemberName" placeholder="Member Name" autocomplete="off">
+                <input type="text" id="newMemberFB" placeholder="Facebook Profile URL" autocomplete="off">
+                <button class="action-btn" style="background:#2ecc71; color:#fff; padding:10px; font-size:0.9rem; margin-top:5px;" onclick="addChecklistMember()">ADD MEMBER</button>
+            </div>
+            
+            <button class="action-btn" style="margin-top:20px; background:#222; color:#fff;" onclick="closeModal('checklistModal')">CLOSE</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            document.getElementById('searchBar').value = "";
+            document.getElementById('loginEmail').value = "";
+            document.getElementById('loginPass').value = "";
+        };
+
+        function showToast(type) {
+            const toast = document.getElementById('toastNotify');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMsg');
+            if(type === 'add') { icon.className = 'fas fa-check-circle toast-icon'; icon.style.color = '#2ecc71'; msg.innerText = 'SUCCESSFULLY!'; toast.style.borderColor = '#2ecc71'; }
+            else if(type === 'delete') { icon.className = 'fas fa-trash-alt toast-icon'; icon.style.color = '#ff4444'; msg.innerText = 'DELETED SUCCESSFULLY!'; toast.style.borderColor = '#ff4444'; }
+            toast.classList.add('active'); setTimeout(() => { toast.classList.remove('active'); }, 3000);
+        }
+
+        document.addEventListener('keydown', function(e) { if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || (e.ctrlKey && e.keyCode === 85)) { e.preventDefault(); return false; } });
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyATUu8N24VHWxj67sbyw6pBttGmyut2rY0",
+            authDomain: "winterfell-database.firebaseapp.com",
+            databaseURL: "https://winterfell-database-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "winterfell-database",
+            storageBucket: "winterfell-database.firebasestorage.app",
+            messagingSenderId: "779335224278",
+            appId: "1:779335224278:web:55a5faf89f4284fffe7277",
+            measurementId: "G-4N379CJMVY"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth(); 
+
+        let members = [], isAdmin = false; 
+        const cardsPerPage = 12;
+        let currentPage = 1;
+        let activeGroupId = ""; 
+
+        auth.onAuthStateChanged(user => {
+            isAdmin = !!user;
+            document.getElementById('addBtn').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('loginToggleBtn').style.display = isAdmin ? 'none' : 'block';
+            document.getElementById('adminStatusBadge').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('adminAddMemberBox').style.display = isAdmin ? 'block' : 'none';
+            fetchData();
+        });
+
+        function fetchData() {
+            db.ref('winterfell_members').on('value', (snap) => {
+                const data = snap.val();
+                members = [];
+                if (data) {
+                    Object.keys(data).forEach(k => {
+                        members.push({ id: k, ...data[k] });
+                    });
+                }
+                members.reverse();
+                render();
+            });
+        }
+
+        function render() {
+            const grid = document.getElementById('memberGrid');
+            grid.innerHTML = "";
+            const start = (currentPage - 1) * cardsPerPage;
+            const paginated = members.slice(start, start + cardsPerPage);
+            
+            paginated.forEach((m, i) => {
+                grid.innerHTML += `
+                    <div class="member-card" style="animation-delay: ${i * 0.05}s">
+                        ${isAdmin ? `<div class="admin-controls">
+                            <button class="edit-btn" onclick="openEditModal('${m.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="del-btn" onclick="openDeleteModal('${m.id}', '${m.name}')"><i class="fas fa-trash"></i></button>
+                        </div>` : ''}
+                        <div class="img-wrapper"><img src="${m.img}" onerror="this.src='https://via.placeholder.com/120'"></div>
+                        <div class="name-text"><span>${m.name}</span><span>${m.name}</span></div>
+                        <div class="card-buttons-group">
+                            <a href="${m.dc || '#'}" target="_blank" class="dc-btn"><i class="fab fa-discord"></i> Discord</a>
+                            <button class="checklist-btn" onclick="openChecklistModal('${m.id}', '${m.name}')"><i class="fas fa-tasks"></i></button>
+                        </div>
+                    </div>`;
+            });
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const count = Math.ceil(members.length / cardsPerPage);
+            const container = document.getElementById('pagination');
+            container.innerHTML = ""; if (count <= 1) return;
+            container.innerHTML += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= count; i++) {
+                if (i === 1 || i === count || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    container.innerHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    container.innerHTML += `<span style="padding:10px; color:#3498db;">...</span>`;
+                }
+            }
+            container.innerHTML += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === count ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+        }
+
+        function changePage(p) { if (p >= 1 && p <= Math.ceil(members.length / cardsPerPage)) { currentPage = p; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+
+        function handleSearch() {
+            let val = document.getElementById('searchBar').value.toLowerCase();
+            const grid = document.getElementById('memberGrid');
+            const pagin = document.getElementById('pagination');
+            if (val === "") { render(); pagin.style.display = 'flex'; } 
+            else {
+                grid.innerHTML = "";
+                members.filter(m => m.name.toLowerCase().includes(val)).forEach((m) => {
+                    grid.innerHTML += `
+                    <div class="member-card">
+                        ${isAdmin ? `<div class="admin-controls">
+                            <button class="edit-btn" onclick="openEditModal('${m.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="del-btn" onclick="openDeleteModal('${m.id}', '${m.name}')"><i class="fas fa-trash"></i></button>
+                        </div>` : ''}
+                        <div class="img-wrapper"><img src="${m.img}" onerror="this.src='https://via.placeholder.com/120'"></div>
+                        <div class="name-text"><span>${m.name}</span><span>${m.name}</span></div>
+                        <div class="card-buttons-group">
+                            <a href="${m.dc || '#'}" target="_blank" class="dc-btn"><i class="fab fa-discord"></i> Discord</a>
+                            <button class="checklist-btn" onclick="openChecklistModal('${m.id}', '${m.name}')"><i class="fas fa-tasks"></i></button>
+                        </div>
+                    </div>`;
+                });
+                pagin.style.display = 'none';
+            }
+        }
+
+        function openChecklistModal(groupId, groupName) {
+            if (activeGroupId && activeGroupId !== groupId) {
+                db.ref(`winterfell_checklist_members/${activeGroupId}`).off();
+            }
+            
+            activeGroupId = groupId;
+            document.getElementById('checkListNameTitle').innerText = groupName;
+            
+            document.getElementById('newMemberName').value = "";
+            document.getElementById('newMemberFB').value = "";
+
+            const container = document.getElementById('checklistContainer');
+            
+            db.ref(`winterfell_checklist_members/${groupId}`).on('value', (snap) => {
+                container.innerHTML = "";
+                const data = snap.val();
+                if (!data) {
+                    container.innerHTML = `<p style="color:#444; text-align:center; font-size:0.9rem; padding: 20px 0;">No members found in checklist</p>`;
+                    return;
+                }
+                
+                Object.keys(data).forEach(memberId => {
+                    const member = data[memberId];
+                    container.innerHTML += `
+                        <div class="checklist-item">
+                            <span class="checklist-name"><i class="fas fa-user-circle" style="color:#5865F2;"></i> ${member.name}</span>
+                            <div class="checklist-actions">
+                                ${member.fb ? `<a href="${member.fb}" target="_blank" class="checklist-fb-link"><i class="fab fa-facebook-f"></i></a>` : ''}
+                                ${isAdmin ? `<button class="checklist-del-btn" onclick="openChecklistDeleteModal('${memberId}', '${member.name}')"><i class="fas fa-user-minus"></i></button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            document.getElementById('checklistModal').style.display = 'flex';
+        }
+
+        function addChecklistMember() {
+            const name = document.getElementById('newMemberName').value.trim();
+            const fb = document.getElementById('newMemberFB').value.trim();
+            if(!name) return alert("Please enter member name.");
+            
+            db.ref(`winterfell_checklist_members/${activeGroupId}`).push({ name: name, fb: fb }).then(() => {
+                showToast('add');
+                document.getElementById('newMemberName').value = "";
+                document.getElementById('newMemberFB').value = "";
+            });
+        }
+
+        function openChecklistDeleteModal(memberId, memberName) {
+            document.getElementById('checklistDeleteTargetId').value = memberId;
+            document.getElementById('checklistDeleteMemberName').innerText = memberName;
+            document.getElementById('checklistDeleteModal').style.display = 'flex';
+        }
+
+        function confirmChecklistDelete() {
+            const memberId = document.getElementById('checklistDeleteTargetId').value;
+            if (!activeGroupId || !memberId) return;
+            db.ref(`winterfell_checklist_members/${activeGroupId}/${memberId}`).remove().then(() => {
+                showToast('delete');
+                closeModal('checklistDeleteModal');
+            });
+        }
+
+        function saveData() {
+            const id = document.getElementById('mId').value;
+            const data = { 
+                name: document.getElementById('mName').value.trim(), 
+                dc: document.getElementById('mDiscord').value.trim(),
+                img: document.getElementById('mImg').value.trim() || "https://via.placeholder.com/120" 
+            };
+            if (!data.name) return alert("Please fill Name");
+            if (id) {
+                db.ref('winterfell_members/' + id).set(data).then(() => { showToast('add'); fetchData(); });
+            } else {
+                db.ref('winterfell_members').push(data).then(() => { showToast('add'); fetchData(); });
+            }
+            closeModal('memberModal');
+        }
+
+        function confirmDelete() {
+            const id = document.getElementById('deleteTargetId').value;
+            db.ref('winterfell_members/' + id).remove();
+            db.ref('winterfell_checklist_members/' + id).remove().then(() => { 
+                showToast('delete'); 
+                fetchData();
+            });
+            closeModal('deleteModal');
+        }
+
+        function closeModal(id) { 
+            if(id === 'checklistModal' && activeGroupId) { 
+                db.ref(`winterfell_checklist_members/${activeGroupId}`).off(); 
+            }
+            document.getElementById(id).style.display = 'none'; 
+        }
+        function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
+        function openLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
+        
+        function openAddModal() { 
+            document.getElementById('modalTitle').innerText = "ADD MEMBER DATA"; 
+            document.getElementById('mId').value = ""; document.getElementById('mName').value = ""; 
+            document.getElementById('mDiscord').value = ""; document.getElementById('mImg').value = "";
+            document.getElementById('memberModal').style.display = 'flex'; 
+        }
+
+        function openEditModal(id) { 
+            const m = members.find(x => x.id === id); if(!m) return;
+            document.getElementById('modalTitle').innerText = "EDIT DATA";
+            document.getElementById('mId').value = m.id; document.getElementById('mName').value = m.name; 
+            document.getElementById('mDiscord').value = m.dc || ""; document.getElementById('mImg').value = m.img; 
+            document.getElementById('memberModal').style.display = 'flex'; 
+        }
+
+        function openDeleteModal(id, name) { document.getElementById('deleteTargetId').value = id; document.getElementById('deleteMemberName').innerText = name; document.getElementById('deleteModal').style.display = 'flex'; }
+        function logout() { auth.signOut().then(() => { localStorage.removeItem("adminMode"); location.reload(); }); }
+
+        async function checkAuth() { 
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            const btn = document.getElementById('loginBtn');
+            if(!email || !pass) return alert("Please fill info");
+            btn.innerText = "Verifying..."; btn.disabled = true;
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                localStorage.setItem("adminMode", "true"); closeModal('loginModal');
+            } catch (error) {
+                alert("Access Denied"); btn.innerText = "Login"; btn.disabled = false; document.getElementById('loginPass').value = "";
+            }
+        }
+
+        function createSnow() { const snow = document.createElement('div'); snow.innerHTML = '❄'; snow.className = 'snow'; snow.style.left = Math.random() * window.innerWidth + 'px'; snow.style.fontSize = Math.random() * 10 + 10 + 'px'; document.body.appendChild(snow); const anim = snow.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(105vh)', opacity: 0 }], { duration: 5000 + Math.random() * 3000 }); anim.onfinish = () => snow.remove(); }
+        setInterval(createSnow, 400);
+    </script>
+</body>
+</html>
