@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -27,6 +27,83 @@
             font-family: 'Segoe UI', Roboto, sans-serif;
             overflow: hidden; display: flex; flex-direction: column;
         }
+
+        
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 99999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; background: #000;
+            transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        
+        #preloader.loaded { transform: translateY(-100%); }
+
+        .loader-bg-effect {
+            position: absolute; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%; opacity: 0.4; pointer-events: none;
+        }
+
+        .loader-content {
+            text-align: center; position: relative; z-index: 2;
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+        }
+
+        .loader-title {
+            font-size: 2.2rem; font-weight: 900; letter-spacing: 8px;
+            text-transform: uppercase; margin: 0;
+            text-shadow: 0 0 20px rgba(255,255,255,0.6);
+            animation: glitchText 3s infinite alternate;
+        }
+
+        .loader-subtitle {
+            font-size: 0.8rem; letter-spacing: 5px; color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase; margin: -10px 0 20px 0;
+        }
+
+        .cyber-ring-wrapper {
+            position: relative; width: 150px; height: 150px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .cyber-ring {
+            position: absolute; width: 100%; height: 100%;
+            border: 2px dashed rgba(255, 255, 255, 0.1); border-radius: 50%;
+            animation: rotateClockwise 15s linear infinite;
+        }
+        .cyber-ring-inner {
+            position: absolute; width: 85%; height: 85%;
+            border: 3px solid transparent; border-top-color: #fff;
+            border-bottom-color: rgba(255,255,255,0.2); border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            animation: rotateCounterClockwise 2s cubic-bezier(0.53, 0.21, 0.29, 0.67) infinite;
+        }
+
+        .load-status-box {
+            position: absolute; display: flex; flex-direction: column; align-items: center;
+        }
+        .load-count { font-size: 1.8rem; font-weight: 900; font-family: monospace; }
+        .load-text { font-size: 0.6rem; letter-spacing: 2px; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-top: 2px; }
+
+        .loader-bar-container {
+            width: 250px; height: 3px; background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px; overflow: hidden; position: relative;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .loader-bar-fill {
+            height: 100%; width: 0%; background: #fff;
+            box-shadow: 0 0 12px #fff, 0 0 4px #fff;
+            transition: width 0.1s ease-out;
+        }
+
+        @keyframes rotateClockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotateCounterClockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+        @keyframes glitchText {
+            0%, 100% { transform: skew(0deg); }
+            2% { transform: skew(3deg); color: #dfdfdf; }
+            4% { transform: skew(-3deg); }
+            5% { transform: skew(0deg); }
+        }
+        
 
         #successOverlay, #logoutModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -164,11 +241,30 @@
             letter-spacing: 3px;
             font-weight: 700;
         }
-
     </style>
 </head>
 <body oncontextmenu="return false;"> 
 
+    <div id="preloader">
+        <div class="loader-bg-effect"></div>
+        <div class="loader-content">
+            <h1 class="loader-title">WINTERFELL</h1>
+            <div class="loader-subtitle">SYSTEM INITIALIZING...</div>
+            
+            <div class="cyber-ring-wrapper">
+                <div class="cyber-ring"></div>
+                <div class="cyber-ring-inner"></div>
+                <div class="load-status-box">
+                    <span class="load-count" id="loadCount">0%</span>
+                    <span class="load-text">LOADING</span>
+                </div>
+            </div>
+            
+            <div class="loader-bar-container">
+                <div class="loader-bar-fill" id="loadBar"></div>
+            </div>
+        </div>
+    </div>
     <div id="successOverlay" onclick="location.reload()">
         <div class="check-container"><i class="fas fa-check"></i></div>
     </div>
@@ -268,6 +364,33 @@
         
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            const countElem = document.getElementById('loadCount');
+            const barElem = document.getElementById('loadBar');
+            const preloader = document.getElementById('preloader');
+            let count = 0;
+
+            
+            const interval = setInterval(() => {
+                count += Math.floor(Math.random() * 5) + 2; 
+                if (count >= 100) {
+                    count = 100;
+                    clearInterval(interval);
+                    
+                   
+                    setTimeout(() => {
+                        preloader.classList.add('loaded');
+                        
+                        setTimeout(() => { preloader.style.display = 'none'; }, 1000);
+                    }, 400);
+                }
+                countElem.innerText = count + '%';
+                barElem.style.width = count + '%';
+            }, 50);
+        });
+        
 
         async function checkLogin() {
             const email = document.getElementById('adminEmail').value.trim();
