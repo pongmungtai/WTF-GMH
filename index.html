@@ -115,10 +115,22 @@
 
         .main-container { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; background-image: url('https://img2.pic.in.th/WTF_GMH-removebg-preview.png'); background-size: cover; background-position: center; }
         .main-container::after { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 1; }
-        .content-wrapper { position: relative; z-index: 10; width: 100%; max-width: 1100px; padding: 20px; margin-bottom: 50px; }
+        
+        .content-wrapper { position: relative; z-index: 10; width: 100%; max-width: 1700px; padding: 20px; margin-bottom: 50px; }
         .menu-pyramid { display: flex; flex-direction: column; align-items: center; gap: 30px; }
         .pyramid-row { display: flex; justify-content: center; gap: 30px; width: 100%; flex-wrap: wrap; }
-        .btn { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; color: #fff; padding: 22px 50px; text-decoration: none; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; transition: 0.4s; display: flex; align-items: center; justify-content: center; gap: 18px; backdrop-filter: blur(15px); cursor: pointer; min-width: 380px; text-transform: uppercase; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); }
+        
+        .top-buttons-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        
+        .btn { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; color: #fff; padding: 22px 50px; text-decoration: none; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; transition: 0.4s; display: flex; align-items: center; justify-content: center; gap: 18px; backdrop-filter: blur(15px); cursor: pointer; min-width: 380px; text-transform: uppercase; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); white-space: nowrap; }
         .btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); transform: translateY(-8px); }
 
         .social-float-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 200; }
@@ -198,13 +210,12 @@
     <div class="main-container">
         <div class="content-wrapper">
             <div class="menu-pyramid">
-                <div class="pyramid-row">
+                
+                <div class="top-buttons-container">
                     <div class="btn" onclick="secureNav('Zm91bmRlcl9wYWdlLmh0bWw=')">
                         <i class="fas fa-crown"></i>
                         <span>FOUNDER WINTERFELL GODMYHXND</span>
                     </div>
-                </div>
-                <div class="pyramid-row">
                     <div class="btn" onclick="secureNav('bGVhZGVyX3BhZ2UuaHRtbA==')">
                         <i class="fas fa-users"></i>
                         <span>LEADER WINTERFELL GODMYHXND</span>
@@ -212,6 +223,11 @@
                     <div class="btn" onclick="secureNav('bWVtYmVyX3BhZ2UuaHRtbA==')">
                         <i class="fas fa-star"></i>
                         <span>MEMBER WINTERFELL GODMYHXND</span>
+                    </div>
+                    
+                    <div class="btn" onclick="secureNav('bWVtYmVyZ21oLmh0bWw=')">
+                        <i class="fas fa-star"></i>
+                        <span>MEMBER GODMYHXND</span>
                     </div>
                 </div>
 
