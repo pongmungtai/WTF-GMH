@@ -9,7 +9,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
      
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
         * { 
             box-sizing: border-box; 
@@ -23,256 +25,374 @@
         body, html {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
-            background-color: #000; color: #fff;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: #030303; color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             overflow: hidden; display: flex; flex-direction: column;
         }
 
-        
+        /* Cinematic Preloader */
         #preloader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 99999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; background: #000;
-            transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1);
+            justify-content: center; align-items: center; background: #050505;
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.85, 0, 0.15, 1);
         }
-        
-        #preloader.loaded { transform: translateY(-100%); }
-
-        .loader-bg-effect {
-            position: absolute; inset: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 6px 100%; opacity: 0.4; pointer-events: none;
-        }
+        #preloader.loaded { opacity: 0; transform: translateY(-100%); pointer-events: none; }
 
         .loader-content {
             text-align: center; position: relative; z-index: 2;
-            display: flex; flex-direction: column; align-items: center; gap: 20px;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+            width: 90%; max-width: 380px;
         }
 
         .loader-title {
-            font-size: 2.2rem; font-weight: 900; letter-spacing: 8px;
-            text-transform: uppercase; margin: 0;
-            text-shadow: 0 0 20px rgba(255,255,255,0.6);
-            animation: glitchText 3s infinite alternate;
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem; font-weight: 900; letter-spacing: 6px;
+            text-transform: uppercase; margin: 0; color: #fff;
         }
 
         .loader-subtitle {
-            font-size: 0.8rem; letter-spacing: 5px; color: rgba(255, 255, 255, 0.4);
-            text-transform: uppercase; margin: -10px 0 20px 0;
+            font-size: 0.7rem; letter-spacing: 4px; color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase; margin-bottom: 5px;
         }
 
-        .cyber-ring-wrapper {
-            position: relative; width: 150px; height: 150px;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .cyber-ring {
-            position: absolute; width: 100%; height: 100%;
-            border: 2px dashed rgba(255, 255, 255, 0.1); border-radius: 50%;
-            animation: rotateClockwise 15s linear infinite;
-        }
-        .cyber-ring-inner {
-            position: absolute; width: 85%; height: 85%;
-            border: 3px solid transparent; border-top-color: #fff;
-            border-bottom-color: rgba(255,255,255,0.2); border-radius: 50%;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-            animation: rotateCounterClockwise 2s cubic-bezier(0.53, 0.21, 0.29, 0.67) infinite;
+        /* หลอด Progress Bar แบบโมเดิร์น */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
-        .load-status-box {
-            position: absolute; display: flex; flex-direction: column; align-items: center;
-        }
-        .load-count { font-size: 1.8rem; font-weight: 900; font-family: monospace; }
-        .load-text { font-size: 0.6rem; letter-spacing: 2px; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-top: 2px; }
-
-        .loader-bar-container {
-            width: 250px; height: 3px; background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px; overflow: hidden; position: relative;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .loader-bar-fill {
-            height: 100%; width: 0%; background: #fff;
-            box-shadow: 0 0 12px #fff, 0 0 4px #fff;
-            transition: width 0.1s ease-out;
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: #ffffff;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
         }
 
-        @keyframes rotateClockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes rotateCounterClockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
-        @keyframes glitchText {
-            0%, 100% { transform: skew(0deg); }
-            2% { transform: skew(3deg); color: #dfdfdf; }
-            4% { transform: skew(-3deg); }
-            5% { transform: skew(0deg); }
+        /* ปุ่ม READY ENTER ทรงสี่เหลี่ยมขอบมนเล็กน้อย (Soft Square) มีเงาเรืองแสง */
+        .ready-btn {
+            display: none;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px; /* ทรงสี่เหลี่ยมมนมุมเพียงเล็กน้อย */
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            margin-top: 10px;
         }
-        
+        .ready-btn:hover {
+            background: #e2e8f0;
+            transform: scale(1.04);
+            box-shadow: 0 0 35px rgba(255, 255, 255, 0.6);
+        }
+        .ready-btn:active {
+            transform: scale(0.97);
+        }
 
+        /* Modals & Overlays */
         #successOverlay, #logoutModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.9); z-index: 5000; justify-content: center; align-items: center;
         }
         .check-container {
-            width: 100px; height: 100px; background: #2ecc71; border-radius: 50%;
+            width: 90px; height: 90px; background: #2ecc71; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 0 30px rgba(46, 204, 113, 0.5);
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.4);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer;
         }
-        .check-container i { font-size: 3.5rem; color: #fff; }
+        .check-container i { font-size: 3rem; color: #fff; }
+        
         .custom-modal {
-            width: 90%; max-width: 400px; background: #0d0d0d; border-radius: 25px;
-            padding: 40px 30px; border-top: 4px solid #ff4b4b; text-align: center;
+            width: 90%; max-width: 380px; background: #0d0d0d; border-radius: 20px;
+            padding: 35px 25px; border-top: 3px solid #ff4b4b; text-align: center;
             box-shadow: 0 25px 50px rgba(0,0,0,0.8); animation: popIn 0.3s ease-out;
+            border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05);
         }
-        .custom-modal h3 { font-size: 1.4rem; font-weight: 900; margin-bottom: 10px; letter-spacing: 1px; }
-        .custom-modal p { color: rgba(255, 255, 255, 0.4); margin-bottom: 30px; }
-        .modal-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-        .m-btn { padding: 16px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+        .custom-modal h3 { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 900; margin-bottom: 8px; letter-spacing: 1px; }
+        .custom-modal p { color: rgba(255, 255, 255, 0.4); font-size: 0.85rem; margin-bottom: 25px; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .m-btn { padding: 14px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
         .btn-logout { background: #ff4b4b; color: #fff; }
         .btn-cancel { background: #1a1a1a; color: #fff; }
-        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
+        /* Top Banner */
         .top-banner {
-            width: 100%; background-color: rgba(15, 15, 15, 0.95);
-            padding: 15px 0; display: flex; flex-direction: column; 
+            width: 100%; background-color: rgba(10, 10, 10, 0.8);
+            padding: 20px 0; display: flex; flex-direction: column; 
             justify-content: center; align-items: center; 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative; z-index: 100; backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative; z-index: 100; backdrop-filter: blur(12px);
         }
-        .top-banner h1 { margin: 0; font-size: 1.8rem; letter-spacing: 4px; font-weight: 900; text-transform: uppercase; }
-        .top-banner h2 { margin: 6px 0 0 0; font-size: 0.9rem; letter-spacing: 6px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; }
+        .top-banner h1 { font-family: 'Cinzel', serif; margin: 0; font-size: 1.6rem; letter-spacing: 3px; font-weight: 900; text-transform: uppercase; }
+        .top-banner h2 { margin: 5px 0 0 0; font-size: 0.75rem; letter-spacing: 5px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; }
 
+        /* Login Panel */
         #loginPanel {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 4000; justify-content: center; align-items: center;
-            backdrop-filter: blur(5px);
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); z-index: 4000; justify-content: center; align-items: center;
+            backdrop-filter: blur(8px);
         }
-
         .login-box {
-            width: 90%; max-width: 400px;
-            background: #0d0d0d;
-            padding: 50px 40px;
-            border-radius: 30px;
-            border: 1px solid #1a1a1a;
+            width: 90%; max-width: 380px; background: #0b0b0b; padding: 40px 30px;
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08);
             display: flex; flex-direction: column; align-items: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
         }
-
-        .login-box h3 { color: #fff; font-size: 1.2rem; font-weight: 800; margin: 0 0 35px 0; letter-spacing: 1px; text-transform: uppercase; }
+        .login-box h3 { font-family: 'Cinzel', serif; color: #fff; font-size: 1.1rem; font-weight: 800; margin: 0 0 25px 0; letter-spacing: 2px; text-transform: uppercase; }
         .login-box input {
-            width: 100%; padding: 16px 20px; margin-bottom: 15px;
-            background: #121212; border: 1px solid #282828;
-            color: #fff; border-radius: 12px; outline: none;
-            font-size: 14px; transition: 0.3s;
+            width: 100%; padding: 14px 18px; margin-bottom: 12px;
+            background: #141414; border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff; border-radius: 10px; outline: none;
+            font-size: 13px; transition: 0.3s;
         }
-        .login-box input:focus { border-color: #444; background: #151515; }
+        .login-box input:focus { border-color: rgba(255,255,255,0.3); background: #181818; }
         .login-box .login-btn {
-            width: 100%; padding: 16px; margin-top: 10px;
+            width: 100%; padding: 14px; margin-top: 8px;
             background: #fff; color: #000; border: none;
-            border-radius: 12px; font-weight: 900; font-size: 15px;
-            cursor: pointer; text-transform: uppercase; transition: 0.3s;
+            border-radius: 10px; font-weight: 900; font-size: 13px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
         }
-        .login-box .login-btn:hover { background: #ddd; transform: translateY(-2px); }
-        .login-box .cancel-text { margin-top: 25px; color: #444; font-size: 13px; cursor: pointer; text-decoration: none; }
+        .login-box .login-btn:hover { background: #d0d0d0; transform: translateY(-1px); }
+        .login-box .cancel-text { margin-top: 20px; color: rgba(255,255,255,0.4); font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .login-box .cancel-text:hover { color: #fff; }
 
         #adminStatusBadge { 
             position: fixed; top: 20px; left: 20px; z-index: 2001; 
-            background: rgba(46, 204, 113, 0.15); color: #2ecc71; 
-            padding: 10px 18px; border-radius: 12px; border: 1px solid rgba(46, 204, 113, 0.3); 
-            font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; 
+            background: rgba(46, 204, 113, 0.1); color: #2ecc71; 
+            padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(46, 204, 113, 0.25); 
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; 
             cursor: pointer; display: none; backdrop-filter: blur(10px); 
-            transition: 0.3s; align-items: center; gap: 8px; 
+            transition: 0.3s; align-items: center; gap: 6px; 
         }
 
         .admin-trigger {
-            position: fixed; bottom: 10px; left: 10px; z-index: 999;
-            cursor: pointer; opacity: 0.1; transition: 0.5s; color: #fff;
-            padding: 20px; font-size: 2.5rem; 
+            position: fixed; bottom: 20px; left: 20px; z-index: 999;
+            cursor: pointer; opacity: 0.2; transition: 0.3s ease; color: #fff;
+            padding: 10px; font-size: 1.3rem; display: flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.03); border-radius: 50%; width: 40px; height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .admin-trigger:hover { opacity: 0.8; transform: rotate(90deg); }
+        .admin-trigger:hover { opacity: 0.9; transform: rotate(90deg); background: rgba(255, 255, 255, 0.08); }
 
         .main-container { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; background-image: url('https://img2.pic.in.th/WTF_GMH-removebg-preview.png'); background-size: cover; background-position: center; }
-        .main-container::after { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 1; }
+        .main-container::after { content: ""; position: absolute; inset: 0; background: rgba(3, 3, 3, 0.88); z-index: 1; }
         
-        .content-wrapper { position: relative; z-index: 10; width: 100%; max-width: 1700px; padding: 20px; margin-bottom: 50px; }
-        .menu-pyramid { display: flex; flex-direction: column; align-items: center; gap: 30px; }
-        .pyramid-row { display: flex; justify-content: center; gap: 30px; width: 100%; flex-wrap: wrap; }
+        .content-wrapper { position: relative; z-index: 10; width: 100%; max-width: 1400px; padding: 20px; }
+        .menu-pyramid { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .pyramid-row { display: flex; justify-content: center; gap: 20px; width: 100%; flex-wrap: wrap; }
         
         .top-buttons-container {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            width: 100%;
-            flex-wrap: wrap;
+            display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 15px; width: 100%; flex-wrap: wrap;
         }
         
-        .btn { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; color: #fff; padding: 22px 50px; text-decoration: none; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; transition: 0.4s; display: flex; align-items: center; justify-content: center; gap: 18px; backdrop-filter: blur(15px); cursor: pointer; min-width: 380px; text-transform: uppercase; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); white-space: nowrap; }
-        .btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); transform: translateY(-8px); }
+        .btn { 
+            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 12px; color: #fff; padding: 18px 35px; text-decoration: none; 
+            font-size: 0.95rem; font-weight: 700; letter-spacing: 1.5px; transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
+            display: flex; align-items: center; justify-content: center; gap: 14px; 
+            backdrop-filter: blur(10px); cursor: pointer; min-width: 320px; text-transform: uppercase; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); white-space: nowrap; 
+        }
+        .btn:hover { 
+            background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.25); 
+            transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.6); 
+        }
 
-        .social-float-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 200; }
-        .social-float-btn { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #fff; text-decoration: none; box-shadow: 0 5px 20px rgba(0,0,0,0.8); border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.3s; }
+        .social-float-container { position: fixed; bottom: 25px; right: 25px; display: flex; flex-direction: column; gap: 12px; z-index: 200; }
+        .social-float-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.6); border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.3s; }
+        .social-float-btn:hover { transform: scale(1.1); }
         .float-fb { background: #1877F2; }
         .float-dc { background: #5865F2; }
 
-        .snowflake { position: fixed; top: -10px; color: #fff; pointer-events: none; z-index: 50; }
-        .footer-credit { width: 100%; padding: 15px; text-align: center; font-size: 0.65rem; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; margin-top: auto; z-index: 100; }
-        .footer-credit a { color: #fff; text-decoration: none; font-weight: bold; }
+        .snowflake { position: fixed; top: -10px; color: rgba(255,255,255,0.7); pointer-events: none; z-index: 50; }
+        
+        .footer-credit { width: 100%; padding: 12px; text-align: center; font-size: 0.6rem; color: rgba(255, 255, 255, 0.3); text-transform: uppercase; margin-top: auto; z-index: 100; letter-spacing: 1px; }
+        .footer-credit a { color: rgba(255,255,255,0.6); text-decoration: none; font-weight: 600; }
+        .footer-credit a:hover { color: #fff; }
 
         .menu-divider {
-            width: 100%;
-            max-width: 900px;
+            width: 100%; max-width: 700px; display: flex; align-items: center; justify-content: center; margin: 5px 0;
+        }
+        .menu-divider::before, .menu-divider::after { content: ""; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08); }
+        .menu-divider span { padding: 0 15px; color: rgba(255, 255, 255, 0.35); font-size: 0.75rem; letter-spacing: 2px; font-weight: 700; }
+
+        /* --- สไตล์เครื่องเล่นเพลงลอยตัว (โทนดำ-ขาว มินิมอล) --- */
+        #draggable-player {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            padding: 8px 14px;
+            user-select: none;
+            transition: border-radius 0.3s ease, padding 0.3s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: #888888;
+            font-size: 14px;
+            padding: 0 8px 0 2px;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+        .drag-handle:hover { color: #ffffff; }
+        .drag-handle:active { cursor: grabbing; }
+
+        .player-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .song-info {
+            font-size: 12px;
+            color: #d1d5db;
+            max-width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .player-btn {
+            background: #ffffff;
+            border: none;
+            color: #000000;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 10px 0;
+            font-size: 12px;
+            transition: background 0.2s, transform 0.1s;
         }
-        .menu-divider::before,
-        .menu-divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.2);
+        .player-btn:hover { background: #e2e8f0; transform: scale(1.05); }
+
+        .seek-container, .volume-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 5;
         }
-        .menu-divider span {
-            padding: 0 20px;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.85rem;
-            letter-spacing: 3px;
-            font-weight: 700;
+        
+        .seek-bar, .volume-bar {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #333333;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
         }
+        
+        .seek-bar { width: 65px; }
+        .volume-bar { width: 50px; }
+
+        .seek-bar::-webkit-slider-thumb, .volume-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .seek-bar::-webkit-slider-thumb:hover, .volume-bar::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .volume-container {
+            color: #9ca3af;
+            font-size: 11px;
+            gap: 5px;
+        }
+
+        .toggle-ui-btn {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .toggle-ui-btn:hover { color: #ffffff; }
+
+        #draggable-player.minimized {
+            padding: 12px;
+            border-radius: 50%;
+            background: #000000;
+            cursor: grab;
+        }
+        #draggable-player.minimized:active { cursor: grabbing; }
+        #draggable-player.minimized .player-content,
+        #draggable-player.minimized .drag-handle { display: none; }
+        
+        .expand-btn {
+            display: none;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        #draggable-player.minimized .expand-btn { display: flex; }
     </style>
 </head>
 <body oncontextmenu="return false;"> 
 
+    <!-- Preloader แบบหลอดโหลดและปุ่มทรงสี่เหลี่ยมขอบมนเบาๆ -->
     <div id="preloader">
-        <div class="loader-bg-effect"></div>
         <div class="loader-content">
             <h1 class="loader-title">WINTERFELL</h1>
-            <div class="loader-subtitle">GODMYHXND NEVERBROKE...</div>
+            <div class="loader-subtitle">GODMYHXND NEVERBROKE</div>
             
-            <div class="cyber-ring-wrapper">
-                <div class="cyber-ring"></div>
-                <div class="cyber-ring-inner"></div>
-                <div class="load-status-box">
-                    <span class="load-count" id="loadCount">0%</span>
-                    <span class="load-text">LOADING</span>
-                </div>
+            <div class="progress-bar-container" id="progressBarContainer">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
             </div>
-            
-            <div class="loader-bar-container">
-                <div class="loader-bar-fill" id="loadBar"></div>
-            </div>
+
+            <button class="ready-btn" id="readyBtn" onclick="enterSite()">READY ENTER</button>
         </div>
     </div>
+
     <div id="successOverlay" onclick="location.reload()">
         <div class="check-container"><i class="fas fa-check"></i></div>
     </div>
     
     <div id="logoutModal">
         <div class="custom-modal">
-            <h3>LOGOUT SESSION?</h3>
-            <p>ออกจากโหมดแก้ไขใช่หรือไม่?</p>
+            <h3>LOGOUT SESSION</h3>
+            <p>ต้องการออกจากโหมดแก้ไขใช่หรือไม่?</p>
             <div class="modal-btns">
                 <button class="m-btn btn-logout" onclick="firebaseLogout()">LOGOUT</button>
                 <button class="m-btn btn-cancel" onclick="document.getElementById('logoutModal').style.display='none'">CANCEL</button>
@@ -294,7 +414,7 @@
         </div>
     </div>
 
-    <div class="admin-trigger" id="loginTrigger" onclick="toggleLogin(true)">
+    <div class="admin-trigger" id="loginTrigger" onclick="toggleLogin(true)" title="Admin Settings">
         <i class="fas fa-cog"></i>
     </div>
 
@@ -306,33 +426,29 @@
     <div class="main-container">
         <div class="content-wrapper">
             <div class="menu-pyramid">
-                
                 <div class="top-buttons-container">
-                    <div class="btn" onclick="secureNav('Zm91bmRlcl9wYWdlLmh0bWw=')">
-                        <i class="fas fa-crown"></i>
+                    <div class="btn" onclick="window.location.href='founder_page.html'">
                         <span>FOUNDER WINTERFELL GODMYHXND</span>
                     </div>
-                    <div class="btn" onclick="secureNav('bGVhZGVyX3BhZ2UuaHRtbA==')">
-                        <i class="fas fa-users"></i>
+                    <div class="btn" onclick="window.location.href='leader_page.html'">
                         <span>LEADER WINTERFELL GODMYHXND</span>
                     </div>
-                    <div class="btn" onclick="secureNav('bWVtYmVyX3BhZ2UuaHRtbA==')">
-                        <i class="fas fa-star"></i>
+                    <div class="btn" onclick="window.location.href='member_page.html'">
                         <span>MEMBER WINTERFELL GODMYHXND</span>
                     </div>
-                    
-                    <div class="btn" onclick="secureNav('bWVtYmVyZ21oLmh0bWw=')">
-                        <i class="fas fa-star"></i>
+                    <div class="btn" onclick="window.location.href='onember.html'">
                         <span>MEMBER GODMYHXND</span>
                     </div>
                 </div>
 
-                <div class="menu-divider"><span>RP</span></div>
+                <div class="menu-divider"><span>POWER BY GODMYHXND</span></div>
 
                 <div class="pyramid-row">
-                    <div class="btn" onclick="secureNav('cnAuaHRtbA==')">
-                        <i class="fas fa-clipboard-check"></i>
-                        <span>RP CHECK</span>
+                    <div class="btn" onclick="window.location.href='onemember.html'">
+                        <span>ONESIXEIGHT</span>
+                    </div>
+                    <div class="btn" onclick="window.location.href='neverbroke.html'">  
+                        <span>NEVERBROKE</span>
                     </div>
                 </div>
             </div>
@@ -350,6 +466,36 @@
         © 2026 All Rights Reserved.
     </footer>
 
+    <!-- เครื่องเล่นเพลงลอยตัว -->
+    <div id="draggable-player">
+        <div class="drag-handle" id="dragHandle" title="คลิกค้างเพื่อลากย้ายหน้าต่าง">
+            <i class="fa-solid fa-grip-vertical"></i>
+        </div>
+
+        <button class="expand-btn" id="expandBtn" title="ดับเบิลคลิกเพื่อเปิดเครื่องเล่นเพลง"><i class="fa-solid fa-music"></i></button>
+
+        <div class="player-content">
+            <span class="song-info" id="songTitle">Ariana Grande - bye</span>
+            
+            <button class="player-btn" id="playPauseBtn" title="เล่น/หยุดเพลง">
+                <i class="fa-solid fa-play" id="playPauseIcon"></i>
+            </button>
+
+            <div class="seek-container">
+                <input type="range" class="seek-bar" id="seekBar" value="0" min="0" max="100" step="0.1" title="เลื่อนเพลง">
+            </div>
+
+            <div class="volume-container">
+                <i class="fa-solid fa-volume-high"></i>
+                <input type="range" class="volume-bar" id="volumeBar" value="100" min="0" max="100" step="1" title="ปรับระดับเสียง">
+            </div>
+
+            <button class="toggle-ui-btn" id="collapseBtn" title="พับซ่อน UI">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyATUu8N24VHWxj67sbyw6pBttGmyut2rY0",
@@ -365,32 +511,198 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        
-        window.addEventListener('DOMContentLoaded', () => {
-            const countElem = document.getElementById('loadCount');
-            const barElem = document.getElementById('loadBar');
-            const preloader = document.getElementById('preloader');
-            let count = 0;
+        let isLoaded = false;
+        let currentPercent = 0;
+        const progressBarFill = document.getElementById('progressBarFill');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const readyBtn = document.getElementById('readyBtn');
 
+        // ควบคุมการวิ่งของหลอดโหลด
+        const loadingInterval = setInterval(() => {
+            currentPercent += Math.floor(Math.random() * 8) + 3;
+            if (currentPercent >= 100) {
+                currentPercent = 100;
+                clearInterval(loadingInterval);
+                isLoaded = true;
+                // ซ่อนหลอดโหลด แล้วแสดงปุ่ม READY ENTER แทน
+                progressBarContainer.style.display = 'none';
+                readyBtn.style.display = 'inline-block';
+            }
+            progressBarFill.style.width = currentPercent + '%';
+        }, 40);
+
+        function enterSite() {
+            if (!isLoaded) return;
             
-            const interval = setInterval(() => {
-                count += Math.floor(Math.random() * 5) + 2; 
-                if (count >= 100) {
-                    count = 100;
-                    clearInterval(interval);
-                    
-                   
-                    setTimeout(() => {
-                        preloader.classList.add('loaded');
-                        
-                        setTimeout(() => { preloader.style.display = 'none'; }, 1000);
-                    }, 400);
-                }
-                countElem.innerText = count + '%';
-                barElem.style.width = count + '%';
-            }, 50);
+            const preloader = document.getElementById('preloader');
+            preloader.classList.add('loaded');
+            setTimeout(() => { preloader.style.display = 'none'; }, 800);
+
+            if (window.sharedAudio) {
+                window.sharedAudio.play().then(() => {
+                    localStorage.setItem('music_is_playing', 'true');
+                }).catch(e => console.log("Audio play error:", e));
+            }
+        }
+
+        // รองรับการกด Enter หรือ Spacebar เพื่อเข้าเว็บ
+        document.addEventListener('keydown', function(e) {
+            if (isLoaded && (e.key === "Enter" || e.code === "Space")) {
+                if(e.code === "Space") e.preventDefault();
+                enterSite();
+            }
         });
+
+        // จัดการระบบเพลงต่อเนื่อง
+        const audioUrl = 'Y2Mate.is - Ariana Grande - bye Altare Remix.mp3'; 
         
+        let audio = window.sharedAudio;
+        if (!audio) {
+            audio = new Audio(audioUrl);
+            audio.loop = true; 
+            window.sharedAudio = audio;
+            
+            const savedTime = localStorage.getItem('music_current_time');
+            const savedVolume = localStorage.getItem('music_volume');
+            
+            if (savedTime) {
+                audio.currentTime = parseFloat(savedTime);
+            }
+            if (savedVolume !== null) {
+                audio.volume = parseFloat(savedVolume);
+            }
+        }
+
+        const player = document.getElementById('draggable-player');
+        const dragHandle = document.getElementById('dragHandle');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const seekBar = document.getElementById('seekBar');
+        const volumeBar = document.getElementById('volumeBar');
+
+        volumeBar.value = audio.volume * 100;
+
+        function updatePlayButton() {
+            if (audio.paused) {
+                playPauseIcon.className = "fa-solid fa-play";
+            } else {
+                playPauseIcon.className = "fa-solid fa-pause";
+            }
+        }
+        updatePlayButton();
+
+        playPauseBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                localStorage.setItem('music_is_playing', 'true');
+            } else {
+                audio.pause();
+                localStorage.setItem('music_is_playing', 'false');
+            }
+            updatePlayButton();
+        });
+
+        audio.onplay = updatePlayButton;
+        audio.onpause = updatePlayButton;
+
+        let isSeeking = false;
+        audio.addEventListener('timeupdate', () => {
+            if (!isSeeking && !isNaN(audio.duration)) {
+                const progress = (audio.currentTime / audio.duration) * 100;
+                seekBar.value = progress;
+            }
+            if (!audio.paused) {
+                localStorage.setItem('music_current_time', audio.currentTime);
+                localStorage.setItem('music_is_playing', 'true');
+            }
+        });
+
+        seekBar.addEventListener('mousedown', () => { isSeeking = true; });
+        seekBar.addEventListener('touchstart', () => { isSeeking = true; });
+
+        seekBar.addEventListener('input', () => {
+            if (!isNaN(audio.duration)) {
+                const time = (seekBar.value / 100) * audio.duration;
+                audio.currentTime = time;
+            }
+        });
+
+        seekBar.addEventListener('mouseup', () => { isSeeking = false; });
+        seekBar.addEventListener('touchend', () => { isSeeking = false; });
+
+        volumeBar.addEventListener('input', () => {
+            audio.volume = volumeBar.value / 100;
+            localStorage.setItem('music_volume', audio.volume);
+        });
+
+        const collapseBtn = document.getElementById('collapseBtn');
+        const expandBtn = document.getElementById('expandBtn');
+
+        collapseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            player.classList.add('minimized');
+            localStorage.setItem('player_minimized', 'true');
+        });
+
+        expandBtn.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            player.classList.remove('minimized');
+            localStorage.setItem('player_minimized', 'false');
+        });
+
+        if (localStorage.getItem('player_minimized') === 'true') {
+            player.classList.add('minimized');
+        }
+
+        // ระบบลากย้ายหน้าต่าง
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+
+        player.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+
+        player.addEventListener('touchstart', dragStart);
+        document.addEventListener('touchmove', drag);
+        document.addEventListener('touchend', dragEnd);
+
+        function dragStart(e) {
+            if (!player.classList.contains('minimized') && !e.target.closest('#dragHandle')) return;
+            
+            isDragging = true;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            startX = clientX;
+            startY = clientY;
+
+            const rect = player.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+            
+            player.style.bottom = 'auto';
+            player.style.right = 'auto';
+            player.style.left = `${initialX}px`;
+            player.style.top = `${initialY}px`;
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            player.style.left = `${initialX + dx}px`;
+            player.style.top = `${initialY + dy}px`;
+        }
+
+        function dragEnd() {
+            isDragging = false;
+        }
 
         async function checkLogin() {
             const email = document.getElementById('adminEmail').value.trim();
@@ -419,7 +731,7 @@
                 document.getElementById("loginTrigger").style.display = "none";
             } else {
                 document.getElementById("adminStatusBadge").style.display = "none";
-                document.getElementById("loginTrigger").style.display = "block";
+                document.getElementById("loginTrigger").style.display = "flex";
             }
         });
 
@@ -432,8 +744,6 @@
             if(show) document.getElementById('adminEmail').focus();
         }
 
-        function secureNav(token) { try { window.location.href = atob(token); } catch(e) {} }
-
         document.addEventListener('keydown', function(e) {
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C"))) {
                 e.preventDefault();
@@ -445,12 +755,12 @@
             snowflake.innerHTML = '❄';
             snowflake.classList.add('snowflake');
             snowflake.style.left = Math.random() * window.innerWidth + 'px';
-            snowflake.style.fontSize = Math.random() * 8 + 4 + 'px';
+            snowflake.style.fontSize = Math.random() * 6 + 4 + 'px';
             document.body.appendChild(snowflake);
-            const anim = snowflake.animate([{ transform: 'translateY(0)', opacity: 0.7 }, { transform: 'translateY(105vh)', opacity: 0 }], { duration: (Math.random() * 4 + 5) * 1000, easing: 'linear' });
+            const anim = snowflake.animate([{ transform: 'translateY(0)', opacity: 0.6 }, { transform: 'translateY(105vh)', opacity: 0 }], { duration: (Math.random() * 4 + 5) * 1000, easing: 'linear' });
             anim.onfinish = () => snowflake.remove();
         }
-        setInterval(createSnow, 300);
+        setInterval(createSnow, 350);
     </script>
 </body>
 </html>
