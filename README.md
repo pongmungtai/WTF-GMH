@@ -1,2 +1,2 @@
-# WTF-GMH สงวนลิขสิทธิ์ © 2026 [Kiss Godmyhxnd(นามแฝง) เฟส https://www.facebook.com/profile.php?id=61578063207491 / GODMYHXND]
+# WTF-GMH สงวนลิขสิทธิ์ © 2026 [Chris Winterfell Godmyhxnd(นามแฝง) เฟส https://www.facebook.com/profile.php?id=61578063207491 / GODMYHXND]
 ห้ามมิให้ผู้ใดคัดลอก ดัดแปลง แจกจ่าย หรือนำส่วนใดส่วนหนึ่งของผลงานนี้ไปใช้ในเชิงพาณิชย์โดยไม่ได้รับอนุญาตเป็นลายลักษณ์อักษรจากเจ้าของลิขสิทธิ์
